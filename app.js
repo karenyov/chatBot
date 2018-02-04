@@ -39,4 +39,20 @@ const basicQnaMakerDialog = new cognitiveServices.QnAMakerDialog({
     feedbackLib: qnaMakerTools
 })
 
+basicQnaMakerDialog.respondFromQnAMakerResult = (session, qnaMakerResult) => {
+    const firstAnswer = qnaMakerResult.answers[0].answer
+    const composedAnswer = firstAnswer.split(';')
+    if (composedAnswer.length === 1) {
+    return session.send(firstAnswer)
+    }
+    const [title, description, url, image] = composedAnswer
+    const card = new builder.HeroCard(session)
+        .title(title)
+        .text(description)
+        .images([builder.CardImage.create(session, image.trim())])
+        .buttons([builder.CardAction.openUrl(session, url.trim(), 'Comprar agora')])
+    const reply = new builder.Message(session).addAttachment(card)
+    session.send(reply)
+}
+
 bot.dialog('/', basicQnaMakerDialog)
