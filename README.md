@@ -1,6 +1,12 @@
 # ChatBot
 Este repositório contém arquivos que foram utilizados em Node.js para estudos no Curso Maratona Bots disponibilizados pela [Microsoft](https://ticapacitacion.com/curso/botspt).
 
+# Acessando os branchs do projeto
+* Cada lição foi separada por módulos. Por exemplo ara acessar o módulo 2, basta acessar o branch:
+`git checkout modulo2`
+
+E assim os demais branchs: modulo3..etc.
+
 # Instalação
 * Faça o clone deste projeto:
 `git clone https://github.com/karenyov/chatBot.git`
