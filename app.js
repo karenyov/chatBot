@@ -1,5 +1,9 @@
+// load env variables from the .env file
+require('dotenv-extended').load()
+
 var restify = require('restify');
 var builder = require('botbuilder');
+var cognitiveServices = require('botbuilder-cognitiveservices')
 
 // Setup Restify Server
 var server = restify.createServer();
@@ -13,10 +17,26 @@ var connector = new builder.ChatConnector({
     appPassword: process.env.MICROSOFT_APP_PASSWORD
 });
 
-// Endpoint que irá monitorar as mensagens do usuário
-server.post('/api/messages', connector.listen());
+const bot = new builder.UniversalBot(connector)
+bot.set('storage', new builder.MemoryBotStorage())
+server.post('/api/messages', connector.listen())
 
-// Recebe as mensagens do usuário e responde repetindo cada mensagem (prefixado com 'Você disse:')
-var bot = new builder.UniversalBot(connector, function (session) {
-    session.send("Você disse: %s", session.message.text);
-});
+// Endpoint que irá monitorar as mensagens do usuário
+
+const recognizer = new cognitiveServices.QnAMakerRecognizer({
+    knowledgeBaseId: process.env.QNA_KNOWLEDGE_BASE_ID,
+    subscriptionKey: process.env.QNA_SUBSCRIPTION_KEY,
+    top: 3
+})
+
+const qnaMakerTools = new cognitiveServices.QnAMakerTools()
+bot.library(qnaMakerTools.createLibrary())
+
+const basicQnaMakerDialog = new cognitiveServices.QnAMakerDialog({
+    recognizers: [recognizer],
+    defaultMessage: 'Não encontrado! Tente alterar os termos da pergunta!',
+    qnaThreshold: 0.5,
+    feedbackLib: qnaMakerTools
+})
+
+bot.dialog('/', basicQnaMakerDialog)
