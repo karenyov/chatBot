@@ -50,7 +50,7 @@ basicQnaMakerDialog.respondFromQnAMakerResult = (session, qnaMakerResult) => {
         .title(title)
         .text(description)
         .images([builder.CardImage.create(session, image.trim())])
-        .buttons([builder.CardAction.openUrl(session, url.trim(), 'Comprar agora')])
+        .buttons([builder.CardAction.openUrl(session, url.trim(), 'Mais informações')])
     const reply = new builder.Message(session).addAttachment(card)
     session.send(reply)
 }
