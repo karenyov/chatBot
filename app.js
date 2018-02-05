@@ -17,42 +17,35 @@ var connector = new builder.ChatConnector({
     appPassword: process.env.MICROSOFT_APP_PASSWORD
 });
 
-const bot = new builder.UniversalBot(connector)
+server.post('/api/messages', connector.listen())
+
+var bot = new builder.UniversalBot(connector)
+bot.set('storage', new builder.MemoryBotStorage())
+
+// Receive messages from the user and respond by echoing each message back 
+bot = new builder.UniversalBot(connector, function (session) {
+    session.send("You sent: %s wich was %s characters", session.message.text, session.message.text.length);
+});
+
 bot.set('storage', new builder.MemoryBotStorage())
 server.post('/api/messages', connector.listen())
 
-// Endpoint que irá monitorar as mensagens do usuário
-
-const recognizer = new cognitiveServices.QnAMakerRecognizer({
-    knowledgeBaseId: process.env.QNA_KNOWLEDGE_BASE_ID,
-    subscriptionKey: process.env.QNA_SUBSCRIPTION_KEY,
-    top: 3
+bot.on('deleteUserData', (message) => {
+    console.log(`deleteUserData ${JSON.stringify(message)}`)
 })
 
-const qnaMakerTools = new cognitiveServices.QnAMakerTools()
-bot.library(qnaMakerTools.createLibrary())
-
-const basicQnaMakerDialog = new cognitiveServices.QnAMakerDialog({
-    recognizers: [recognizer],
-    defaultMessage: 'Não encontrado! Tente alterar os termos da pergunta!',
-    qnaThreshold: 0.5,
-    feedbackLib: qnaMakerTools
+bot.on('conversationUpdate', (message) => {
+    console.log(`conversationUpdate ${JSON.stringify(message)}`)
 })
 
-basicQnaMakerDialog.respondFromQnAMakerResult = (session, qnaMakerResult) => {
-    const firstAnswer = qnaMakerResult.answers[0].answer
-    const composedAnswer = firstAnswer.split(';')
-    if (composedAnswer.length === 1) {
-    return session.send(firstAnswer)
-    }
-    const [title, description, url, image] = composedAnswer
-    const card = new builder.HeroCard(session)
-        .title(title)
-        .text(description)
-        .images([builder.CardImage.create(session, image.trim())])
-        .buttons([builder.CardAction.openUrl(session, url.trim(), 'Mais informações')])
-    const reply = new builder.Message(session).addAttachment(card)
-    session.send(reply)
-}
+bot.on('contactRelationUpdate', (message) => {
+    console.log(`contactRelationUpdate ${JSON.stringify(message)}`)
+})
 
-bot.dialog('/', basicQnaMakerDialog)
+bot.on('typing', (message) => {
+    console.log(`typing ${JSON.stringify(message)}`)  
+})
+
+bot.on('ping', (message) => {
+    console.log(`ping ${JSON.stringify(message)}`)
+})
